@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: quay-operator-hub
+  namespace: openshift-gitops
+spec:
+  generators:
+  - clusterDecisionResource:
+      configMapRef: acm-placement
+      labelSelector:
+        matchLabels:
+          cluster.open-cluster-management.io/placement: quay-operator-hub
+      requeueAfterSeconds: 30
+  template:
+    metadata:
+      labels:
+        velero.io/exclude-from-backup: "true"
+      name: quay-operator-{{name}}
+    spec:
+      destination:
+        namespace: quay-enterprise
+        server: '{{server}}'
+      project: default
+      source:
+        helm:
+          parameters:
+          - name: quay.channel
+            value: stable-3.8
+          - name: quay.namespace
+            value: quay-enterprise
+          - name: quay.startingCSV
+            value: quay-operator.v3.8.2
+          - name: quay.catalogSource.name
+            value: redhat-operators-snapshot-quay
+          - name: quay.catalogSource.image
+            value: quay.io/gpte-devops-automation/olm_snapshot_redhat_catalog
+          - name: quay.catalogSource.imageTag
+            value: v4.12_2023_02_27
+        path: charts/quay-operator
+        repoURL: https://github.com/sumiranchugh/agnosticg
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PruneLast=true

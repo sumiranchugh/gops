@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  creationTimestamp: "2023-11-27T15:43:04Z"
+  generation: 1
+  name: quay-registry-hub
+  namespace: openshift-gitops
+  resourceVersion: "4166097"
+  uid: 1aec4489-49fb-4588-8ae6-9381fc5c1110
+spec:
+  generators:
+  - clusterDecisionResource:
+      configMapRef: acm-placement
+      labelSelector:
+        matchLabels:
+          cluster.open-cluster-management.io/placement: quay-registry-hub
+      requeueAfterSeconds: 30
+  template:
+    metadata:
+      labels:
+        velero.io/exclude-from-backup: "true"
+      name: quay-registry-{{name}}
+    spec:
+      destination:
+        namespace: quay-enterprise
+        server: '{{server}}'
+      project: default
+      source:
+        helm:
+          parameters:
+          - name: quay.registry.name
+            value: quay
+          - name: quay.registry.clair.enabled
+            value: "True"
+          - name: quay.registry.hpa.enabled
+            value: "False"
+          - name: quay.registry.mirror.enabled
+            value: "False"
+          - name: quay.registry.monitoring.enabled
+            value: "False"
+          - name: quay.registry.username
+            value: quayadmin
+          - name: quay.registry.password
+            value: MjY1ODQ2
+        path: charts/quay-registry
+        repoURL: https://github.com/sumiranchugh/agnosticg
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PruneLast=true

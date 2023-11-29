@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sonarqube-hub
+  namespace: openshift-gitops
+spec:
+  generators:
+  - clusterDecisionResource:
+      configMapRef: acm-placement
+      labelSelector:
+        matchLabels:
+          cluster.open-cluster-management.io/placement: sonarqube-hub
+      requeueAfterSeconds: 30
+  template:
+    metadata:
+      labels:
+        velero.io/exclude-from-backup: "true"
+      name: sonarqube-{{name}}
+    spec:
+      destination:
+        namespace: sonarqube
+        server: '{{server}}'
+      project: default
+      source:
+        helm:
+          parameters:
+          - name: sonarqube.image
+            value: quay.io/redhat-gpte/sonarqube:7.7
+          - name: sonarqube.adminPassword
+            value: MjY1ODQ2
+          - name: sonarqube.namespace
+            value: sonarqube
+        path: charts/sonarqube
+        repoURL: https://github.com/sumiranchugh/agnosticg
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PruneLast=true
