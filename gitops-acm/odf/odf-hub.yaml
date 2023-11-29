@@ -1,16 +1,9 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
   name: odf-hub
   namespace: openshift-gitops
 spec:
-  generators:
-  - clusterDecisionResource:
-      configMapRef: acm-placement
-      labelSelector:
-        matchLabels:
-          cluster.open-cluster-management.io/placement: odf-hub
-      requeueAfterSeconds: 30
   template:
     metadata:
       labels:
@@ -19,7 +12,7 @@ spec:
     spec:
       destination:
         namespace: openshift-storage
-        server: '{{server}}'
+        server: https://kubernetes.default.svc
       project: default
       source:
         helm:
