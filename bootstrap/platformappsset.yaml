@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+    name: platform-apps
+    namespace: openshift-gitops
+spec:
+    goTemplate: true
+    goTemplateOptions: ["missingkey=error"]
+    generators:
+        - git:
+            repoURL: https://github.com/sumiranchugh/gops.git
+            revision: main
+            directories:
+                - path: components/gitops-acm/**
+                  recursive: true
+    template:
+        metadata:
+            name: '{{.path.basename}}'
+        spec:
+            project: "default"
+            source: 
+                repoURL: https://github.com/sumiranchugh/gops.git
+                targetRevision: main
+                path: '{{.path.path}}'
+            destination:
+                server: https://kubernetes.default.svc
+                namespace: gops
+            syncPolicy:
+                automated:
+                    prune: true
+                syncOptions:
+                    - CreateNamespace=true

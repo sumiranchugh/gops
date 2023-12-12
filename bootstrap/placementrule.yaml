@@ -1,0 +1,12 @@
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  name: acm-placement
+spec:
+  clusterReplicas: 1   # Availability choice, maximum number of clusters to provision at once
+  clusterSelector:
+    matchLabels:
+      'usage': 'management'
+  clusterConditions:
+    - type: ManagedClusterConditionAvailable
+      status: "True"
